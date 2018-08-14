@@ -1,0 +1,6 @@
+[package]
+name = "terrain-generator"
+version = "0.1.0"
+authors = ["maxeonyx <maxeonyx@gmail.com>"]
+
+[dependencies]
