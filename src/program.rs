@@ -1,12 +1,25 @@
 use super::images::Images;
+use cgmath::{self, Deg, Matrix4, One, Point3, Vector3, Vector4, Zero};
 use glium::{self, glutin, index::PrimitiveType, Surface};
 use std;
+
+const TERRAIN_WIDTH: usize = 10;
+const NUM_VERTICES: usize = TERRAIN_WIDTH * TERRAIN_WIDTH;
+const NUM_PATCH_VERTICES: usize = (TERRAIN_WIDTH - 1) * (TERRAIN_WIDTH - 1) * 4;
+
+const WORLD_WIDTH: f32 = 100.0;
+
+#[derive(Copy, Clone, Default)]
+struct Vertex {
+	position: [f32; 3],
+}
+implement_vertex!(Vertex, position);
 
 pub struct Program {
 	display: glium::Display,
 	events_loop: glutin::EventsLoop,
 	shaders: glium::Program,
-	images: Box<Images>,
+	images: Images,
 }
 
 impl Program {
@@ -14,7 +27,7 @@ impl Program {
 		display: glium::Display,
 		events_loop: glutin::EventsLoop,
 		shaders: glium::Program,
-		images: Box<Images>,
+		images: Images,
 	) -> Self {
 		Program {
 			display,
@@ -32,28 +45,72 @@ impl Program {
 	}
 
 	fn render(&self) {
-		const TERRAIN_WIDTH: usize = 10;
+		let (vertex_buffer, index_buffer) = self.make_vertices();
+		let mvp_matrix = self.make_mvp_matrix();
+		let mut target = self.display.draw();
+		target.clear_color(0.0, 1.0, 0.0, 0.0);
+		target
+			.draw(
+				&vertex_buffer,
+				&index_buffer,
+				&self.shaders,
+				&uniform!{
+					tex_heightmap: &self.images.heightmap,
+					tex_lava: &self.images.lava,
+					world_width: WORLD_WIDTH,
+					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
+				},
+				&glium::draw_parameters::DrawParameters {
+					polygon_mode: glium::draw_parameters::PolygonMode::Line,
+					..Default::default()
+				},
+			)
+			.unwrap();
+		target.finish().unwrap();
+	}
 
+	fn make_mvp_matrix(&self) -> Matrix4<f32> {
+		let perspective = cgmath::perspective(Deg(30 as f32), 1.25, 0.01, 200.0);
+
+		let look_at = Matrix4::look_at(
+			Point3 {
+				x: -8.0,
+				y: -8.0,
+				z: 22.0,
+			},
+			Point3 {
+				x: 40.0,
+				y: 40.0,
+				z: 0.0,
+			},
+			Vector3::unit_z(),
+		);
+		let mvp = perspective * look_at;
+
+		mvp
+	}
+
+	fn handle_events(&mut self) {
+		self.events_loop.poll_events(|event| match event {
+			glutin::Event::WindowEvent { event, .. } => match event {
+				glutin::WindowEvent::CloseRequested => std::process::exit(0),
+				_ => {}
+			},
+			_ => {}
+		})
+	}
+
+	fn make_vertices(&self) -> (glium::VertexBuffer<Vertex>, glium::IndexBuffer<u16>) {
 		let vertex_buffer = {
-			#[derive(Copy, Clone, Default)]
-			struct Vertex {
-				position: [f32; 3],
-			}
-
-			implement_vertex!(Vertex, position);
-
-			let mut vertices = [Vertex::default(); TERRAIN_WIDTH * TERRAIN_WIDTH];
+			let mut vertices = [Vertex::default(); NUM_VERTICES];
 
 			for x in 0..TERRAIN_WIDTH {
 				for y in 0..TERRAIN_WIDTH {
 					let lerp_x = x as f32 / (TERRAIN_WIDTH - 1) as f32;
 					let lerp_y = y as f32 / (TERRAIN_WIDTH - 1) as f32;
 
-					vertices[y * TERRAIN_WIDTH + x].position = [
-						lerp_x * TERRAIN_WIDTH as f32 * 2.0 - TERRAIN_WIDTH as f32,
-						lerp_y * TERRAIN_WIDTH as f32 * 2.0 - TERRAIN_WIDTH as f32,
-						0.0,
-					]
+					vertices[y * TERRAIN_WIDTH + x].position =
+						[lerp_x * WORLD_WIDTH, lerp_y * WORLD_WIDTH, 0.0]
 				}
 			}
 
@@ -61,8 +118,6 @@ impl Program {
 		};
 
 		let index_buffer = {
-			const NUM_PATCH_VERTICES: usize = (TERRAIN_WIDTH - 1) * (TERRAIN_WIDTH - 1) * 4;
-
 			let mut indices = [0u16; NUM_PATCH_VERTICES];
 
 			let mut index_index = 0;
@@ -91,37 +146,6 @@ impl Program {
 			).unwrap()
 		};
 
-		let rgb_image = self.images.texture1.to_rgb();
-		let dimensions = rgb_image.dimensions();
-		let texture1_img =
-			glium::texture::RawImage2d::from_raw_rgb(rgb_image.into_raw(), dimensions);
-		let texture1_tex = glium::texture::Texture2d::new(&self.display, texture1_img).unwrap();
-		let mut target = self.display.draw();
-		target.clear_color(0.0, 1.0, 0.0, 0.0);
-		target
-			.draw(
-				&vertex_buffer,
-				&index_buffer,
-				&self.shaders,
-				&uniform!{
-					texture1: &texture1_tex,
-				},
-				&glium::draw_parameters::DrawParameters {
-					//polygon_mode: glium::draw_parameters::PolygonMode::Line,
-					..Default::default()
-				},
-			)
-			.unwrap();
-		target.finish().unwrap();
-	}
-
-	fn handle_events(&mut self) {
-		self.events_loop.poll_events(|event| match event {
-			glutin::Event::WindowEvent { event, .. } => match event {
-				glutin::WindowEvent::CloseRequested => std::process::exit(0),
-				_ => {}
-			},
-			_ => {}
-		})
+		(vertex_buffer, index_buffer)
 	}
 }

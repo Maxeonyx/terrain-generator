@@ -21,7 +21,7 @@ fn init_glium() -> (glium::Display, glutin::EventsLoop) {
 fn main() -> ! {
     let (display, events_loop) = init_glium();
     let shaders = shaders::init_shaders(&display);
-    let images = images::init_images();
+    let images = images::init_images(&display);
     let mut program = program::Program::new(display, events_loop, shaders, images);
     program.main_loop()
 }

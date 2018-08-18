@@ -1,14 +1,30 @@
+use glium;
 use image;
 use image::load_from_memory;
 
-const TEXTURE1: &[u8] = include_bytes!("lava.jpg");
+const TEX_HEIGHTMAP: &[u8] = include_bytes!("heightmap.png");
+const TEX_LAVA: &[u8] = include_bytes!("lava.jpg");
+const TEX_LAVAROCK: &[u8] = include_bytes!("lavarock.png");
 
 pub struct Images {
-	pub texture1: image::DynamicImage,
+	pub heightmap: glium::Texture2d,
+	pub lava: glium::Texture2d,
+	pub lavarock: glium::Texture2d,
 }
 
-pub fn init_images() -> Box<Images> {
-	Box::new(Images {
-		texture1: load_from_memory(TEXTURE1).expect("Could not load lava.jpg"),
-	})
+pub fn init_images(display: &glium::Display) -> Images {
+	Images {
+		heightmap: u8_to_tex(display, TEX_HEIGHTMAP),
+		lava: u8_to_tex(display, TEX_LAVA),
+		lavarock: u8_to_tex(display, TEX_LAVAROCK),
+	}
+}
+
+fn u8_to_tex(display: &glium::Display, bytes: &[u8]) -> glium::Texture2d {
+	let dynamic_image = load_from_memory(bytes).expect("Could not load image.");
+	let rgb_image = dynamic_image.to_rgb();
+	let dimensions = rgb_image.dimensions();
+	let image_2d = glium::texture::RawImage2d::from_raw_rgb(rgb_image.into_raw(), dimensions);
+
+	glium::texture::Texture2d::new(display, image_2d).unwrap()
 }
