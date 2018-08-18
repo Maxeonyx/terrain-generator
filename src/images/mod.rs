@@ -1,5 +1,4 @@
 use glium;
-use image;
 use image::load_from_memory;
 
 const TEX_HEIGHTMAP: &[u8] = include_bytes!("heightmap.png");

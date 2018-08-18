@@ -1,5 +1,5 @@
 use super::images::Images;
-use cgmath::{self, Deg, Matrix4, One, Point3, Vector3, Vector4, Zero};
+use cgmath::{self, prelude::*, Deg, Matrix4, Point3, Quaternion, Rotation, Rotation3, Vector3};
 use glium::{self, glutin, index::PrimitiveType, Surface};
 use std;
 
@@ -15,11 +15,70 @@ struct Vertex {
 }
 implement_vertex!(Vertex, position);
 
+struct Camera {
+	position: Point3<f32>,
+	direction: Vector3<f32>,
+	speed: f32,
+	rotation_speed: Deg<f32>,
+}
+
+enum CameraMovement {
+	Left,
+	Right,
+	Forward,
+	Back,
+}
+
+impl Camera {
+	pub fn new() -> Self {
+		let position = Point3 {
+			x: -5.0,
+			y: -5.0,
+			z: 22.0,
+		};
+		let x_rotation = cgmath::Quaternion::from_axis_angle(Vector3::unit_x(), Deg(-20.0f32));
+		let z_rotation = cgmath::Quaternion::from_axis_angle(Vector3::unit_z(), Deg(-45.0f32));
+		let direction = z_rotation.rotate_vector(x_rotation.rotate_vector(Vector3::unit_y()));
+
+		Camera {
+			position,
+			direction,
+			speed: 1.5,
+			rotation_speed: Deg(8.0),
+		}
+	}
+
+	pub fn update(&mut self, movement: CameraMovement) {
+		match movement {
+			CameraMovement::Back => {
+				self.position = self.position
+					+ self.speed
+						* Vector3::new(-self.direction.x, -self.direction.y, 0.0).normalize()
+			}
+			CameraMovement::Forward => {
+				self.position = self.position
+					+ self.speed * Vector3::new(self.direction.x, self.direction.y, 0.0).normalize()
+			}
+			CameraMovement::Left => {
+				self.direction =
+					Quaternion::from_axis_angle(Vector3::unit_z(), self.rotation_speed)
+						.rotate_vector(self.direction);
+			}
+			CameraMovement::Right => {
+				self.direction =
+					Quaternion::from_axis_angle(Vector3::unit_z(), -self.rotation_speed)
+						.rotate_vector(self.direction);
+			}
+		}
+	}
+}
+
 pub struct Program {
 	display: glium::Display,
 	events_loop: glutin::EventsLoop,
 	shaders: glium::Program,
 	images: Images,
+	camera: Camera,
 }
 
 impl Program {
@@ -34,6 +93,7 @@ impl Program {
 			events_loop,
 			shaders,
 			images,
+			camera: Camera::new(),
 		}
 	}
 
@@ -72,17 +132,9 @@ impl Program {
 	fn make_mvp_matrix(&self) -> Matrix4<f32> {
 		let perspective = cgmath::perspective(Deg(30 as f32), 1.25, 0.01, 200.0);
 
-		let look_at = Matrix4::look_at(
-			Point3 {
-				x: -8.0,
-				y: -8.0,
-				z: 22.0,
-			},
-			Point3 {
-				x: 40.0,
-				y: 40.0,
-				z: 0.0,
-			},
+		let look_at = Matrix4::look_at_dir(
+			self.camera.position,
+			self.camera.direction,
 			Vector3::unit_z(),
 		);
 		let mvp = perspective * look_at;
@@ -91,9 +143,21 @@ impl Program {
 	}
 
 	fn handle_events(&mut self) {
-		self.events_loop.poll_events(|event| match event {
+		let camera = &mut self.camera;
+		let events_loop = &mut self.events_loop;
+		events_loop.poll_events(|event| match event {
 			glutin::Event::WindowEvent { event, .. } => match event {
 				glutin::WindowEvent::CloseRequested => std::process::exit(0),
+				glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
+					Some(keycode) => match keycode {
+						glutin::VirtualKeyCode::Left => camera.update(CameraMovement::Left),
+						glutin::VirtualKeyCode::Right => camera.update(CameraMovement::Right),
+						glutin::VirtualKeyCode::Up => camera.update(CameraMovement::Forward),
+						glutin::VirtualKeyCode::Down => camera.update(CameraMovement::Back),
+						_ => {}
+					},
+					_ => {}
+				},
 				_ => {}
 			},
 			_ => {}
