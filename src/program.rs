@@ -1,3 +1,4 @@
+use super::images::Images;
 use glium::{self, glutin, index::PrimitiveType, Surface};
 use std;
 
@@ -5,6 +6,7 @@ pub struct Program {
 	display: glium::Display,
 	events_loop: glutin::EventsLoop,
 	shaders: glium::Program,
+	images: Box<Images>,
 }
 
 impl Program {
@@ -12,11 +14,13 @@ impl Program {
 		display: glium::Display,
 		events_loop: glutin::EventsLoop,
 		shaders: glium::Program,
+		images: Box<Images>,
 	) -> Self {
 		Program {
 			display,
 			events_loop,
 			shaders,
+			images,
 		}
 	}
 
@@ -33,38 +37,22 @@ impl Program {
 		let vertex_buffer = {
 			#[derive(Copy, Clone, Default)]
 			struct Vertex {
-				position: [f32; 2],
+				position: [f32; 3],
 			}
 
 			implement_vertex!(Vertex, position);
 
-			// let vertices = [
-			// 	Vertex {
-			// 		position: [-1f32, 0f32],
-			// 	},
-			// 	Vertex {
-			// 		position: [-1f32, 1f32],
-			// 	},
-			// 	Vertex {
-			// 		position: [0f32, 0f32],
-			// 	},
-			// 	Vertex {
-			// 		position: [0f32, 1f32],
-			// 	},
-			// 	Vertex {
-			// 		position: [1f32, 0f32],
-			// 	},
-			// 	Vertex {
-			// 		position: [1f32, 1f32],
-			// 	},
-			// ];
 			let mut vertices = [Vertex::default(); TERRAIN_WIDTH * TERRAIN_WIDTH];
 
 			for x in 0..TERRAIN_WIDTH {
 				for y in 0..TERRAIN_WIDTH {
+					let lerp_x = x as f32 / (TERRAIN_WIDTH - 1) as f32;
+					let lerp_y = y as f32 / (TERRAIN_WIDTH - 1) as f32;
+
 					vertices[y * TERRAIN_WIDTH + x].position = [
-						x as f32 / TERRAIN_WIDTH as f32,
-						y as f32 / TERRAIN_WIDTH as f32,
+						lerp_x * TERRAIN_WIDTH as f32 * 2.0 - TERRAIN_WIDTH as f32,
+						lerp_y * TERRAIN_WIDTH as f32 * 2.0 - TERRAIN_WIDTH as f32,
+						0.0,
 					]
 				}
 			}
@@ -103,6 +91,11 @@ impl Program {
 			).unwrap()
 		};
 
+		let rgb_image = self.images.texture1.to_rgb();
+		let dimensions = rgb_image.dimensions();
+		let texture1_img =
+			glium::texture::RawImage2d::from_raw_rgb(rgb_image.into_raw(), dimensions);
+		let texture1_tex = glium::texture::Texture2d::new(&self.display, texture1_img).unwrap();
 		let mut target = self.display.draw();
 		target.clear_color(0.0, 1.0, 0.0, 0.0);
 		target
@@ -110,9 +103,11 @@ impl Program {
 				&vertex_buffer,
 				&index_buffer,
 				&self.shaders,
-				&uniform!{},
+				&uniform!{
+					texture1: &texture1_tex,
+				},
 				&glium::draw_parameters::DrawParameters {
-					polygon_mode: glium::draw_parameters::PolygonMode::Line,
+					//polygon_mode: glium::draw_parameters::PolygonMode::Line,
 					..Default::default()
 				},
 			)

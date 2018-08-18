@@ -5,6 +5,7 @@ extern crate image;
 
 use glium::glutin;
 
+mod images;
 mod program;
 mod shaders;
 
@@ -20,6 +21,7 @@ fn init_glium() -> (glium::Display, glutin::EventsLoop) {
 fn main() -> ! {
     let (display, events_loop) = init_glium();
     let shaders = shaders::init_shaders(&display);
-    let mut program = program::Program::new(display, events_loop, shaders);
+    let images = images::init_images();
+    let mut program = program::Program::new(display, events_loop, shaders, images);
     program.main_loop()
 }
