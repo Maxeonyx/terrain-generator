@@ -2,11 +2,13 @@ use glium;
 use image::load_from_memory;
 
 const TEX_HEIGHTMAP: &[u8] = include_bytes!("heightmap.png");
+const TEX_HEIGHTMAP_2: &[u8] = include_bytes!("heightmap_2.png");
 const TEX_LAVA: &[u8] = include_bytes!("lava.jpg");
 const TEX_LAVAROCK: &[u8] = include_bytes!("lavarock.png");
 
 pub struct Images {
 	pub heightmap: glium::Texture2d,
+	pub heightmap_2: glium::Texture2d,
 	pub lava: glium::Texture2d,
 	pub lavarock: glium::Texture2d,
 }
@@ -14,6 +16,7 @@ pub struct Images {
 pub fn init_images(display: &glium::Display) -> Images {
 	Images {
 		heightmap: u8_to_tex(display, TEX_HEIGHTMAP),
+		heightmap_2: u8_to_tex(display, TEX_HEIGHTMAP_2),
 		lava: u8_to_tex(display, TEX_LAVA),
 		lavarock: u8_to_tex(display, TEX_LAVAROCK),
 	}

@@ -5,13 +5,23 @@ layout (triangle_strip, max_vertices=3) out;
 
 uniform mat4 mvp_matrix;
 uniform float world_width;
+uniform int which_heightmap;
 uniform sampler2D tex_heightmap;
+uniform sampler2D tex_heightmap_2;
 
 void main() {
 	int i;
 	for (i = 0; i < gl_in.length(); i++) {
 		vec4 position = gl_in[i].gl_Position;
-		position.z = 20*texture(tex_heightmap, position.xy/world_width).r;
+
+		vec2 heightmap_coord = position.xy/world_width;
+		vec4 height_sample;
+		if (which_heightmap == 0) {
+			height_sample = texture(tex_heightmap, heightmap_coord);
+		} else {
+			height_sample = texture(tex_heightmap_2, heightmap_coord);
+		}
+		position.z = 20*height_sample.r;
 		gl_Position = mvp_matrix * position;
 		EmitVertex();
 	}

@@ -79,6 +79,7 @@ pub struct Program {
 	shaders: glium::Program,
 	images: Images,
 	camera: Camera,
+	which_heightmap: i32,
 }
 
 impl Program {
@@ -94,6 +95,7 @@ impl Program {
 			shaders,
 			images,
 			camera: Camera::new(),
+			which_heightmap: 0,
 		}
 	}
 
@@ -119,6 +121,7 @@ impl Program {
 					tex_lava: &self.images.lava,
 					world_width: WORLD_WIDTH,
 					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
+					which_heightmap: self.which_heightmap,
 				},
 				&glium::draw_parameters::DrawParameters {
 					polygon_mode: glium::draw_parameters::PolygonMode::Line,
@@ -145,6 +148,7 @@ impl Program {
 	fn handle_events(&mut self) {
 		let camera = &mut self.camera;
 		let events_loop = &mut self.events_loop;
+		let heightmap = &mut self.which_heightmap;
 		events_loop.poll_events(|event| match event {
 			glutin::Event::WindowEvent { event, .. } => match event {
 				glutin::WindowEvent::CloseRequested => std::process::exit(0),
@@ -154,6 +158,15 @@ impl Program {
 						glutin::VirtualKeyCode::Right => camera.update(CameraMovement::Right),
 						glutin::VirtualKeyCode::Up => camera.update(CameraMovement::Forward),
 						glutin::VirtualKeyCode::Down => camera.update(CameraMovement::Back),
+						glutin::VirtualKeyCode::H => {
+							if input.state == glutin::ElementState::Pressed {
+								if *heightmap == 0 {
+									*heightmap = 1
+								} else {
+									*heightmap = 0
+								}
+							}
+						}
 						_ => {}
 					},
 					_ => {}
