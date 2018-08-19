@@ -121,6 +121,7 @@ impl Program {
 				&uniform!{
 					tex_heightmap: &self.images.heightmap,
 					tex_lava: &self.images.lava,
+					tex_lava: &self.images.lavarock,
 					world_width: WORLD_WIDTH,
 					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
 					which_heightmap: self.which_heightmap,
