@@ -112,7 +112,7 @@ impl Program {
 		let (vertex_buffer, index_buffer) = self.make_vertices();
 		let mvp_matrix = self.make_mvp_matrix();
 		let mut target = self.display.draw();
-		target.clear_color(0.0, 1.0, 0.0, 0.0);
+		target.clear_color_and_depth((0.0, 1.0, 0.0, 0.0), 1.0);
 		target
 			.draw(
 				&vertex_buffer,
@@ -126,6 +126,11 @@ impl Program {
 					which_heightmap: self.which_heightmap,
 				},
 				&glium::draw_parameters::DrawParameters {
+					depth: glium::Depth {
+						test: glium::draw_parameters::DepthTest::IfLess,
+						write: true,
+						..Default::default()
+					},
 					polygon_mode: self.polygon_mode,
 					..Default::default()
 				},
