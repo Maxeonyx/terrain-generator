@@ -80,6 +80,7 @@ pub struct Program {
 	images: Images,
 	camera: Camera,
 	which_heightmap: i32,
+	polygon_mode: glium::draw_parameters::PolygonMode,
 }
 
 impl Program {
@@ -96,6 +97,7 @@ impl Program {
 			images,
 			camera: Camera::new(),
 			which_heightmap: 0,
+			polygon_mode: glium::draw_parameters::PolygonMode::Fill,
 		}
 	}
 
@@ -124,7 +126,7 @@ impl Program {
 					which_heightmap: self.which_heightmap,
 				},
 				&glium::draw_parameters::DrawParameters {
-					polygon_mode: glium::draw_parameters::PolygonMode::Line,
+					polygon_mode: self.polygon_mode,
 					..Default::default()
 				},
 			)
@@ -149,6 +151,7 @@ impl Program {
 		let camera = &mut self.camera;
 		let events_loop = &mut self.events_loop;
 		let heightmap = &mut self.which_heightmap;
+		let polygon_mode = &mut self.polygon_mode;
 		events_loop.poll_events(|event| match event {
 			glutin::Event::WindowEvent { event, .. } => match event {
 				glutin::WindowEvent::CloseRequested => std::process::exit(0),
@@ -164,6 +167,15 @@ impl Program {
 									*heightmap = 1
 								} else {
 									*heightmap = 0
+								}
+							}
+						}
+						glutin::VirtualKeyCode::P => {
+							if input.state == glutin::ElementState::Pressed {
+								if *polygon_mode == glium::draw_parameters::PolygonMode::Fill {
+									*polygon_mode = glium::draw_parameters::PolygonMode::Line
+								} else {
+									*polygon_mode = glium::draw_parameters::PolygonMode::Fill
 								}
 							}
 						}
