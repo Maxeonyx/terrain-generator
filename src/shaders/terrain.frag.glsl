@@ -2,6 +2,8 @@
 
 uniform sampler2D tex_lava;
 
+in vec2 tex_coord;
+
 void main() {
-    gl_FragColor = texture(tex_lava, gl_FragCoord.xy/(1250/5));
+    gl_FragColor = texture(tex_lava, tex_coord);
 }
