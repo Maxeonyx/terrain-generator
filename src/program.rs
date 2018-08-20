@@ -34,9 +34,9 @@ impl Camera {
 		let position = Point3 {
 			x: -5.0,
 			y: -5.0,
-			z: 22.0,
+			z: 28.0,
 		};
-		let x_rotation = cgmath::Quaternion::from_axis_angle(Vector3::unit_x(), Deg(-20.0f32));
+		let x_rotation = cgmath::Quaternion::from_axis_angle(Vector3::unit_x(), Deg(-30.0f32));
 		let z_rotation = cgmath::Quaternion::from_axis_angle(Vector3::unit_z(), Deg(-45.0f32));
 		let direction = z_rotation.rotate_vector(x_rotation.rotate_vector(Vector3::unit_y()));
 
@@ -122,6 +122,7 @@ impl Program {
 					tex_heightmap: &self.images.heightmap,
 					tex_lava: &self.images.lava,
 					tex_lava: &self.images.lavarock,
+					camera_position: <[f32; 3]>::from(self.camera.position.into()),
 					world_width: WORLD_WIDTH,
 					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
 					which_heightmap: self.which_heightmap,
@@ -141,7 +142,7 @@ impl Program {
 	}
 
 	fn make_mvp_matrix(&self) -> Matrix4<f32> {
-		let perspective = cgmath::perspective(Deg(30 as f32), 1.25, 0.01, 200.0);
+		let perspective = cgmath::perspective(Deg(60 as f32), 1.25, 0.01, 200.0);
 
 		let look_at = Matrix4::look_at_dir(
 			self.camera.position,
