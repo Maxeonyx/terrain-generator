@@ -28,8 +28,7 @@ void set_tex_weights(float z) {
 }
 
 void main() {
-	int i;
-	for (i = 0; i < gl_in.length(); i++) {
+	for (int i = 0; i < gl_in.length(); i++) {
 		vec4 position = gl_in[i].gl_Position;
 
 		vec2 heightmap_coord = position.xy/world_width;
