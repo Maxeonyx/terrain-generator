@@ -120,6 +120,7 @@ impl Program {
 				&self.shaders,
 				&uniform!{
 					tex_heightmap: &self.images.heightmap,
+					tex_heightmap_2: &self.images.heightmap_2,
 					tex_lava: &self.images.lava,
 					tex_lava: &self.images.lavarock,
 					camera_position: <[f32; 3]>::from(self.camera.position.into()),
