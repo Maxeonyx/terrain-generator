@@ -20,8 +20,8 @@ void set_tex_coords(vec2 xy_lerp) {
 
 const float ash_level = 0.7;
 const float ash_blend_range = 0.1;
-const float lava_level = 0.2;
-const float lava_blend_range = 0.1;
+const float lava_level = 0.3;
+const float lava_blend_range = 0.03;
 
 void set_tex_weights(float z) {
 	if (z > ash_level) {
@@ -55,11 +55,15 @@ void main() {
 
 		vec2 heightmap_coord = position.xy/world_width;
 		vec4 height_sample;
+
 		if (which_heightmap == 0) {
 			height_sample = texture(tex_heightmap, heightmap_coord);
 		} else {
 			height_sample = texture(tex_heightmap_2, heightmap_coord);
 		}
+
+		// raise low points to the lava level
+		height_sample.r = max(height_sample.r, lava_level);
 
 		set_tex_coords(position.xy / world_width);
 		set_tex_weights(height_sample.r);
