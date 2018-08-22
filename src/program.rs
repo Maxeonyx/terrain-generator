@@ -112,7 +112,7 @@ impl Program {
 		let (vertex_buffer, index_buffer) = self.make_vertices();
 		let mvp_matrix = self.make_mvp_matrix();
 		let mut target = self.display.draw();
-		target.clear_color_and_depth((0.0, 1.0, 0.0, 0.0), 1.0);
+		target.clear_color_and_depth((0.02, 0.02, 0.02, 0.0), 1.0);
 		target
 			.draw(
 				&vertex_buffer,
