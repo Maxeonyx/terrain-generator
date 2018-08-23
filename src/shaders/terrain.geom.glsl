@@ -15,7 +15,7 @@ out vec3[N_TEX] tex_coord;
 void set_tex_coords(vec2 xy_lerp) {
 	tex_coord[0].xy = xy_lerp * 5;
 	tex_coord[1].xy = xy_lerp * 10;
-	tex_coord[2].xy = xy_lerp * 15;
+	tex_coord[2].xy = xy_lerp * 8;
 }
 
 const float ash_level = 0.7;

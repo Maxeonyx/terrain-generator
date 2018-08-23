@@ -122,11 +122,13 @@ impl Program {
 					tex_heightmap: &self.images.heightmap,
 					tex_heightmap_2: &self.images.heightmap_2,
 					tex_lava: &self.images.lava,
-					tex_lava: &self.images.lavarock,
+					tex_lavarock: &self.images.lavarock,
+					tex_ash: &self.images.ash,
 					camera_position: <[f32; 3]>::from(self.camera.position.into()),
 					world_width: WORLD_WIDTH,
 					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
 					which_heightmap: self.which_heightmap,
+					is_line_mode: if self.polygon_mode == glium::draw_parameters::PolygonMode::Line { 1 } else { 0 },
 				},
 				&glium::draw_parameters::DrawParameters {
 					depth: glium::Depth {
