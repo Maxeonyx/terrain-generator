@@ -18,9 +18,9 @@ void set_tex_coords(vec2 xy_lerp) {
 	tex_coord[2].xy = xy_lerp * 8;
 }
 
-const float ash_level = 0.7;
-const float ash_blend_range = 0.1;
-const float lava_level = 0.3;
+uniform float ash_level;
+uniform float lava_level;
+const float ash_blend_range = 0.15;
 const float lava_blend_range = 0.03;
 
 void set_tex_weights(float z) {

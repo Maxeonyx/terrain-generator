@@ -81,6 +81,8 @@ pub struct Program {
 	camera: Camera,
 	which_heightmap: i32,
 	polygon_mode: glium::draw_parameters::PolygonMode,
+	lava_level: f32,
+	ash_level: f32,
 }
 
 impl Program {
@@ -98,6 +100,8 @@ impl Program {
 			camera: Camera::new(),
 			which_heightmap: 0,
 			polygon_mode: glium::draw_parameters::PolygonMode::Fill,
+			lava_level: 0.3f32,
+			ash_level: 0.7f32,
 		}
 	}
 
@@ -128,6 +132,8 @@ impl Program {
 					world_width: WORLD_WIDTH,
 					mvp_matrix: <[[f32; 4]; 4]>::from(mvp_matrix.into()),
 					which_heightmap: self.which_heightmap,
+					lava_level: self.lava_level,
+					ash_level: self.ash_level,
 					is_line_mode: if self.polygon_mode == glium::draw_parameters::PolygonMode::Line { 1 } else { 0 },
 				},
 				&glium::draw_parameters::DrawParameters {
@@ -162,6 +168,8 @@ impl Program {
 		let events_loop = &mut self.events_loop;
 		let heightmap = &mut self.which_heightmap;
 		let polygon_mode = &mut self.polygon_mode;
+		let lava_level = &mut self.lava_level;
+		let ash_level = &mut self.ash_level;
 		events_loop.poll_events(|event| match event {
 			glutin::Event::WindowEvent { event, .. } => match event {
 				glutin::WindowEvent::CloseRequested => std::process::exit(0),
@@ -187,6 +195,26 @@ impl Program {
 								} else {
 									*polygon_mode = glium::draw_parameters::PolygonMode::Fill
 								}
+							}
+						}
+						glutin::VirtualKeyCode::K => {
+							if input.state == glutin::ElementState::Pressed {
+								*lava_level += 0.005;
+							}
+						}
+						glutin::VirtualKeyCode::L => {
+							if input.state == glutin::ElementState::Pressed {
+								*lava_level -= 0.005;
+							}
+						}
+						glutin::VirtualKeyCode::I => {
+							if input.state == glutin::ElementState::Pressed {
+								*ash_level += 0.005;
+							}
+						}
+						glutin::VirtualKeyCode::O => {
+							if input.state == glutin::ElementState::Pressed {
+								*ash_level -= 0.005;
 							}
 						}
 						_ => {}
