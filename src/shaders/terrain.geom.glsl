@@ -12,11 +12,15 @@ uniform sampler2D tex_heightmap_2;
 const int N_TEX = 3;
 out vec3[N_TEX] tex_coord;
 
+out vec3 normal;
+
 void set_tex_coords(vec2 xy_lerp) {
 	tex_coord[0].xy = xy_lerp * 5;
 	tex_coord[1].xy = xy_lerp * 10;
 	tex_coord[2].xy = xy_lerp * 8;
 }
+
+const float height_scale = 20;
 
 uniform float ash_level;
 uniform float lava_level;
@@ -49,27 +53,51 @@ void set_tex_weights(float z) {
 	}
 }
 
+float get_height(vec3 position) {
+
+	vec2 heightmap_coord = position.xy/world_width;
+
+	switch (which_heightmap) {
+		case 0:
+			return texture(tex_heightmap, heightmap_coord).r;
+		default:
+			return texture(tex_heightmap_2, heightmap_coord).r;
+	}
+}
+
+vec3 calculate_normal(vec3 position) {
+
+	float delta = world_width / 9 / 20 / 4;
+
+	vec3 extra_point_1 = position + vec3(delta, 0, 0);
+	extra_point_1.z = get_height(extra_point_1) * height_scale;
+
+	vec3 extra_point_2 = position + vec3(0, delta, 0);
+	extra_point_2.z = get_height(extra_point_2) * height_scale;
+
+	return normalize(cross(position - extra_point_1, position - extra_point_2));
+}
+
 void main() {
+	vec4 position[3];
 	for (int i = 0; i < gl_in.length(); i++) {
-		vec4 position = gl_in[i].gl_Position;
+		position[i] = gl_in[i].gl_Position;
+		
+		float height = get_height(position[i].xyz);
 
-		vec2 heightmap_coord = position.xy/world_width;
-		vec4 height_sample;
+		height = max(height, lava_level);
 
-		if (which_heightmap == 0) {
-			height_sample = texture(tex_heightmap, heightmap_coord);
-		} else {
-			height_sample = texture(tex_heightmap_2, heightmap_coord);
-		}
+		position[i].z = 20 * height;
+	}
 
-		// raise low points to the lava level
-		height_sample.r = max(height_sample.r, lava_level);
+	for (int i = 0; i < gl_in.length(); i++) {
 
-		set_tex_coords(position.xy / world_width);
-		set_tex_weights(height_sample.r);
+		set_tex_coords(position[i].xy / world_width);
+		set_tex_weights(position[i].z / height_scale);
 
-		position.z = 20*height_sample.r;
-		gl_Position = mvp_matrix * position;
+		normal = calculate_normal(position[i].xyz);
+
+		gl_Position = mvp_matrix * position[i];
 		EmitVertex();
 	}
 	EndPrimitive();

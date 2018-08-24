@@ -8,8 +8,11 @@ uniform sampler2D tex_ash;
 
 uniform int is_line_mode;
 
+const vec3 light_dir = vec3(1, 4, 3);
+
 // xy is texture coordinate. z is texture weight.
 in vec3[N_TEX] tex_coord;
+in vec3 normal;
 
 void main() {
 
@@ -37,5 +40,17 @@ void main() {
         // Square to correct gamma and multiply by weight
         color += tex_sample[i] * tex_sample[i] * tex_coord[i].z;
     }
+
+    vec3 lighting = vec3(0.3) + vec3(dot(normalize(light_dir), normal));
+    
+    // Make lava not affected by lighting
+    lighting.x = max(lighting.x, tex_coord[0].z);
+    lighting.y = max(lighting.y, tex_coord[0].z);
+    lighting.z = max(lighting.z, tex_coord[0].z);
+
+    color.x *= lighting.x;
+    color.y *= lighting.y;
+    color.z *= lighting.z;
+
     gl_FragColor = color;
 }
