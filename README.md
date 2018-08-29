@@ -3,7 +3,11 @@ This is a university assignment for Advanced Computer Graphics. The task was to 
 
 ## Controls
 **Arrow keys** to move the camera.
+
 **I** and **O** to change the Ash level.
+
 **K** and **L** to change the Lava level.
+
 **P** to toggle wireframe mode.
+
 **H** to toggle between the two heightmaps.
