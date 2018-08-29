@@ -1,5 +1,5 @@
 [package]
-name = "terrain-generator"
+name = "terrain-viewer"
 version = "0.1.0"
 authors = ["maxeonyx <maxeonyx@gmail.com>"]
 
